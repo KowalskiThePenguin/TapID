@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Живой интерфейс LIFE</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    #center-icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 190px;
+  height: 120px;
+  background: linear-gradient(145deg, #ffffff, #e6f7ff, #d0e2f0);
+  border-radius: 16px;
+  box-shadow:
+    0 10px 20px rgba(255, 255, 255, 0.3),
+    inset 0 0 12px rgba(240, 255, 255, 0.6),
+    inset 0 -2px 10px rgba(180, 220, 255, 0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 26px;
+  font-weight: 900;
+  font-family: 'Segoe UI', sans-serif;
+  color: #003333;
+  letter-spacing: 1px;
+  text-shadow:
+    0 0 6px rgba(255, 255, 255, 0.9),
+    0 0 10px rgba(220, 250, 255, 0.3);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: glowPulse 4s infinite ease-in-out;
+  z-index: 3;
+}
+
+#center-icon::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 34px;
+  height: 26px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1a1f26, #2c3e50, #1f2e3c);
+  background-size: 200% 200%;
+  animation: chipFlow 8s ease-in-out infinite;
+  box-shadow:
+    inset 0 0 2px #00ffc3,
+    0 0 8px rgba(0, 255, 204, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 2;
+  opacity: 0.92;
+}
+
+#center-icon::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 34px;
+  height: 26px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(0, 255, 204, 0.12),
+    rgba(0, 255, 204, 0.12) 1px,
+    transparent 1px,
+    transparent 5px
+  ),
+  repeating-linear-gradient(
+    180deg,
+    rgba(0, 255, 204, 0.08),
+    rgba(0, 255, 204, 0.08) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+  border-radius: 6px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+@keyframes chipFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+
+
+
+
+
+
+    @keyframes glowPulse {
+      0%, 100% {
+        box-shadow:
+          0 6px 12px rgba(0, 255, 204, 0.6),
+          inset 0 0 15px #00ffd0,
+          inset 0 -4px 10px #00875a;
+      }
+      50% {
+        box-shadow:
+          0 8px 20px rgba(0, 255, 204, 0.9),
+          inset 0 0 25px #00ffe0,
+          inset 0 -5px 15px #00aa73;
+      }
+    }
+
+    #center-icon:hover {
+      transform: translate(-50%, -50%) scale(1.15) rotate(-2deg);
+      box-shadow:
+        0 10px 25px rgba(0, 255, 204, 1),
+        inset 0 0 30px #00fff0,
+        inset 0 -6px 20px #00cfa0;
+    }
+
+    #center-icon:active {
+      transform: translate(-50%, -50%) scale(0.9) rotate(3deg);
+      box-shadow:
+        0 4px 8px rgba(0, 255, 204, 0.7),
+        inset 0 0 10px #00ccaa,
+        inset 0 -3px 6px #005c40;
+    }
+
+    .icon {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow:
+        0 4px 10px rgba(0, 255, 204, 0.15),
+        inset 0 0 0px rgba(255, 255, 255, 0.1);
+      color: #00ffd0;
+      font-size: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: all 0.4s ease;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .icon:hover {
+      transform: scale(1.15);
+      background: rgba(0, 255, 204, 0.08);
+      border: 1px solid rgba(0, 255, 204, 0.2);
+      box-shadow:
+        0 0 12px rgba(0, 255, 204, 0.4),
+        0 0 24px rgba(0, 255, 204, 0.2),
+        inset 0 0 4px rgba(255, 255, 255, 0.05);
+      pointer-events: auto;
+    }
+
+    .label {
+      font-size: 8.5px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.65);
+      letter-spacing: 0.5px;
+      user-select: none;
+      text-align: center;
+
+    }
+	.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 20, 20, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  z-index: 10;
+}
+
+.modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  background: #012b2f;
+  color: #00ffd0;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 80%;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 255, 204, 0.4);
+  transform: scale(0.8);
+  transition: transform 0.4s ease;
+}
+
+.modal.show .modal-content {
+  transform: scale(1);
+}
+
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 24px;
+  color: #00ffd0;
+  cursor: pointer;
+  user-select: none;
+}
+
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div id="center-icon">TapID</div>
+
+<!-- Иконки -->
+<div class="icon" id="icon1">🔥<span class="label">Проблема</span></div>
+<div class="icon" id="icon2">✅<span class="label">Решение</span></div>
+<div class="icon" id="icon3">📱<span class="label">TapID и Pay</span></div>
+<div class="icon" id="icon4">⚙️<span class="label">Как работает</span></div>
+<div class="icon" id="icon5">🌍<span class="label">Где применим</span></div>
+<div class="icon" id="icon6">🎓<span class="label">TapID EDU</span></div>
+<div class="icon" id="icon7">🍽<span class="label">Для ресторанов</span></div>
+<div class="icon" id="icon8">🛍<span class="label">Для магазинов</span></div>
+<div class="icon" id="icon9">💾<span class="label">Как флешка</span></div>
+<div class="icon" id="icon10">💳<span class="label">Подписка и прибыль</span></div>
+<div class="icon" id="icon11">📈<span class="label">Стратегия и рост</span></div>
+<!-- Окно с информацией -->
+<div id="info-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <div id="info-text"></div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const pointCount = 100;
+  const points = [];
+  let time = 0;
+  let dragging = false;
+
+  for (let i = 0; i < pointCount; i++) {
+    points.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.75,
+      vy: (Math.random() - 0.5) * 0.75
+    });
+  }
+
+  let mouse = { x: null, y: null, active: false };
+  let mouseTimer = null;
+
+  function activateMouse() {
+    mouse.active = true;
+    if (mouseTimer) clearTimeout(mouseTimer);
+    mouseTimer = setTimeout(() => {
+      mouse.active = false;
+    }, 1000);
+  }
+
+  document.addEventListener('mousedown', (e) => {
+    dragging = true;
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    activateMouse();
+  });
+
+  document.addEventListener('mouseup', () => dragging = false);
+  document.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    activateMouse();
+  });
+
+  document.addEventListener('touchstart', (e) => {
+    dragging = true;
+    if (e.touches.length > 0) {
+      mouse.x = e.touches[0].clientX;
+      mouse.y = e.touches[0].clientY;
+      activateMouse();
+    }
+  });
+
+  document.addEventListener('touchend', () => dragging = false);
+  document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 0) {
+      mouse.x = e.touches[0].clientX;
+      mouse.y = e.touches[0].clientY;
+      activateMouse();
+    }
+  });
+
+  function animateBackground() {
+    time += 0.01;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < pointCount; i++) {
+      for (let j = i + 1; j < pointCount; j++) {
+        const dx = points[i].x - points[j].x;
+        const dy = points[i].y - points[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 100) {
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(0,255,204,${1 - dist / 100})`;
+          ctx.moveTo(points[i].x, points[i].y);
+          ctx.lineTo(points[j].x, points[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    for (let i = 0; i < pointCount; i++) {
+      let p = points[i];
+
+      if (dragging && mouse.x != null && mouse.y != null) {
+        const dx = mouse.x - p.x;
+        const dy = mouse.y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 200) {
+          const force = (200 - dist) / 3000;
+          p.vx += (dx / dist) * force;
+          p.vy += (dy / dist) * force;
+        }
+      }
+
+      p.vx += Math.sin(time + i) * 0.001;
+      p.vy += Math.cos(time + i) * 0.001;
+      p.vx += (Math.random() - 0.5) * 0.005;
+      p.vy += (Math.random() - 0.5) * 0.005;
+
+      p.x += p.vx;
+      p.y += p.vy;
+
+      const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      const maxSpeed = 1.5;
+      if (speed > maxSpeed) {
+        p.vx *= maxSpeed / speed;
+        p.vy *= maxSpeed / speed;
+      }
+
+      if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = '#00ffcc';
+      ctx.fill();
+    }
+
+    requestAnimationFrame(animateBackground);
+  }
+
+  animateBackground();
+
+  const center = document.getElementById("center-icon");
+  let expanded = false;
+
+  center.addEventListener("click", () => {
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    const radius = Math.min(window.innerWidth, window.innerHeight) / 3;
+
+    if (!expanded) {
+      for (let i = 1; i <= 11; i++) {
+        setTimeout(() => {
+          const icon = document.getElementById("icon" + i);
+          const angle = (2 * Math.PI / 11) * (i - 1);
+          const x = centerX + radius * Math.cos(angle) - 30;
+          const y = centerY + radius * Math.sin(angle) - 30;
+          icon.style.left = `${x}px`;
+          icon.style.top = `${y}px`;
+          icon.style.opacity = "1";
+          icon.style.transform = `scale(1.9)`;
+          icon.style.pointerEvents = "auto";
+        }, i * 70);
+      }
+    } else {
+      for (let i = 1; i <= 11; i++) {
+        setTimeout(() => {
+          const icon = document.getElementById("icon" + i);
+          icon.style.left = `${centerX - 30}px`;
+          icon.style.top = `${centerY - 30}px`;
+          icon.style.opacity = "0";
+          icon.style.transform = `scale(0.6)`;
+          icon.style.pointerEvents = "none";
+        }, i * 40);
+      }
+    }
+
+    expanded = !expanded;
+  });
+
+  window.onload = () => {
+    const centerX = window.innerWidth / 2 - 30;
+    const centerY = window.innerHeight / 2 - 30;
+    for (let i = 1; i <= 10; i++) {
+      const icon = document.getElementById("icon" + i);
+      icon.style.left = `${centerX}px`;
+      icon.style.top = `${centerY}px`;
+      icon.style.opacity = "0";
+      icon.style.transform = "scale(0.6)";
+      icon.style.pointerEvents = "none";
+    }
+  };
+
+  window.onresize = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if (expanded) {
+      expanded = false;
+      center.click(); // перестроить иконки после ресайза
+    }
+  };
+  const modal = document.getElementById("info-modal");
+const modalContent = document.getElementById("info-text");
+const closeBtn = document.querySelector(".close-btn");
+
+const infoTexts = {
+  icon1: `
+    <h2>🔥 Проблема</h2>
+    <p><strong>Кратко:</strong> Всё раздроблено, бумажно, неудобно.</p>
+    <p><strong>Описание:</strong> Визитки теряются, документы забываются, меню устаревают:
+    <ul>
+      <li>Люди теряют флешки и визитки</li>
+      <li>Магазины диктуют номер карты вручную</li>
+      <li>Рестораны перепечатывают меню снова и снова</li>
+      <li>Контакты передаются как в 2005 году</li>
+      <li>Бизнесу всё надо печатать, хранить и обновлять вручную</li>
+    </ul></p>
+    <p><strong>Результат:</strong> Потери, затраты, неудобство. Всё это — в эпоху цифровизации? Серьёзно?</p>
+  `,
+
+  icon2: `
+    <h2>✅ Решение</h2>
+    <p><strong>Кратко:</strong> Всё в одной NFC-карте.</p>
+    <p><strong>Описание:</strong> TapID — это современное решение:
+    <ul>
+      <li>Открывается по касанию телефона</li>
+      <li>Показывает визитку, ссылки, меню, документы</li>
+      <li>Редактируется через Telegram-бота или приложение</li>
+      <li>Работает без установки у получателя</li>
+    </ul></p>
+    <p><strong>Результат:</strong> Одна карта вместо визитки, флешки, меню, анкеты и облака.</p>
+  `,
+
+  icon3: `
+    <h2>📱 TapID и TapID Pay</h2>
+    <p><strong>Кратко:</strong> Оплата, ссылки, визитки — всё в одном.</p>
+    <p><strong>Описание:</strong>
+    <ul>
+      <li><strong>TapID Pay:</strong> Мобильное приложение для мультиоплаты: Click, PayMe, Uzcard, HUMO</li>
+      <li><strong>TapID:</strong> Редактируется через Telegram-бота</li>
+      <li>Содержит визитки, меню, анкеты, документы</li>
+    </ul></p>
+    <p><strong>Результат:</strong> NFC-карта, которая заменяет 5 разных носителей.</p>
+  `,
+
+  icon4: `
+    <h2>⚙️ Как работает TapID</h2>
+    <p><strong>Кратко:</strong> Просто. Один раз настроил — используешь всегда.</p>
+    <p><strong>Описание:</strong>
+    <ul>
+      <li>Покупаешь карту в магазине или онлайн</li>
+      <li>Касаешься телефоном — открывается Telegram-бот</li>
+      <li>Настраиваешь: контакты, ссылки, PDF</li>
+      <li>Любой, кто прикоснётся — видит только то, что ты разрешил</li>
+    </ul></p>
+    <p><strong>Результат:</strong> TapID работает 24/7 без лишних движений.</p>
+  `,
+
+  icon5: `
+    <h2>🌍 Где применим TapID</h2>
+    <p><strong>Кратко:</strong> Визитки, меню, ссылки, анкеты.</p>
+    <p><strong>Описание:</strong>
+    <ul>
+      <li>Визитка / Портфолио</li>
+      <li>Хранилище документов</li>
+      <li>Контакты, ссылки, брендинг</li>
+      <li>Оплата товаров и услуг</li>
+      <li>Интерактивное меню в ресторане</li>
+      <li>Опросы и формы</li>
+      <li>Электронные каталоги</li>
+    </ul></p>
+    <p><strong>Результат:</strong> Универсальный инструмент в одном касании.</p>
+  `,
+
+  icon6: `
+    <h2>🎓 TapID EDU</h2>
+    <p><strong>Кратко:</strong> Интерактивное образование.</p>
+    <p><strong>Описание:</strong>
+    <ul>
+      <li>Карты закрепляются на партах и аудиториях</li>
+      <li>Преподаватели оставляют отзывы о группах</li>
+      <li>Студенты — о преподавателях</li>
+      <li>Расписание занятий прямо через карту</li>
+      <li>Сбор аналитики и отзывов</li>
+    </ul></p>
+    <p><strong>Результат:</strong> Умный кампус без приложений и бумажек.</p>
+  `,
+
+  icon7: `
+    <h2>🍽 TapID в ресторанах</h2>
+    <p><strong>Кратко:</strong> Меню, оплата, оценка сервиса.</p>
+    <p><strong>Описание:</strong>
+    <ul>
+      <li>Интерактивное меню по касанию</li>
+      <li>Информация об официанте</li>
+      <li>Оценка персонала</li>
+      <li>Оплата через карту</li>
+      <li>Экономия: до 400 000 сум/мес на аудиторах</li>
+    </ul></p>
+    <p><strong>Результат:</strong> Цифровой ресторан без переплат и недовольных клиентов.</p>
+  `,
+
+  icon8: `
+    <h2>🛍 TapID в магазинах</h2>
+    <p><strong>Кратко:</strong> Быстрая оплата, ссылки, мультикошелёк.</p>
+    <p><strong>Описание:</strong>
+    <ul>
+      <li>Покупатель касается — открывается ссылка на оплату</li>
+      <li>Без ручного ввода номера карты</li>
+      <li>Решение для магазинов, не работающих с HUMO</li>
+      <li>Поддержка всех платёжных систем в одном</li>
+    </ul></p>
+    <p><strong>Результат:</strong> Современные продажи с минимальным трением.</p>
+  `,
+
+  icon9: `
+    <h2>💾 TapID как флешка</h2>
+    <p><strong>Кратко:</strong> Облако в кармане.</p>
+    <p><strong>Описание:</strong>
+    <ul>
+      <li>Загрузка и хранение PDF, изображений, ссылок</li>
+      <li>Передача файлов без Bluetooth и Wi-Fi</li>
+      <li>Замена флешки — NFC всегда под рукой</li>
+    </ul></p>
+    <p><strong>Результат:</strong> Документы и медиа — в одной касательной.</p>
+  `,
+  icon10: `
+  <h2>💳 Подписка и прибыль</h2>
+  <p><strong>Кратко:</strong> Доход, премиум-функции, цена.</p>
+  <p><strong>TapID Premium:</strong>
+  <ul>
+    <li>Облачное хранилище</li>
+    <li>Аналитика переходов</li>
+    <li>Расширенный дизайн</li>
+    <li>Защита данных</li>
+    <li>Бесплатно первые 3 месяца</li>
+    <li>Далее: 50,000 сум/год или 5,000 сум/мес</li>
+  </ul></p>
+  <p><strong>Себестоимость карты:</strong>
+  <ul>
+    <li>NFC-чип: 5,000 сум</li>
+    <li>Оформление: 16,000 сум</li>
+    <li><strong>Итого: 21,000 сум</strong></li>
+  </ul></p>
+  <p><strong>Розничная цена:</strong> 80,000 сум<br>
+  <strong>Прибыль с 1 карты:</strong> 59,000 сум</p>
+`,
+icon11: `
+  <h2>📈 Анализ и стратегия</h2>
+  <p><strong>Кратко:</strong> Сценарии роста, конкуренты, рынок.</p>
+  <p><strong>Финансовая стратегия:</strong> 
+  <ul>
+    <li>Выручка: от 2.3 до 18 млрд сум</li>
+    <li>Прибыль: от 1.8 до 13.8 млрд сум</li>
+  </ul></p>
+  <p><strong>Конкуренты:</strong>
+  <ul>
+    <li>Цена: у конкурентов — до 120,000 сум</li>
+    <li>TapID — 80,000 сум, гибче и удобнее</li>
+    <li>Обновление данных — в реальном времени</li>
+  </ul></p>
+  <p><strong>Целевая аудитория:</strong>
+  <ul>
+    <li>Физлица, студенты, преподаватели</li>
+    <li>Кафе, магазины, предприниматели</li>
+    <li>Госучреждения и стартапы</li>
+  </ul></p>
+  <p><strong>Планы развития:</strong>
+  <ul>
+    <li>Мобильное приложение</li>
+    <li>API-доступ и интеграция с Google/Apple Pay</li>
+    <li>Выход на зарубежный рынок</li>
+  </ul></p>
+`,
+
+};
+
+
+// Назначить обработчики кликов
+for (let i = 1; i <= 11; i++) {
+  const icon = document.getElementById("icon" + i);
+  icon.addEventListener("click", () => {
+    const key = "icon" + i;
+    modalContent.innerHTML = infoTexts[key];
+    modal.classList.add("show");
+  });
+}
+
+// Закрытие модального окна
+closeBtn.addEventListener("click", () => {
+  modal.classList.remove("show");
+});
+
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    modal.classList.remove("show");
+  }
+});
+
+</script>
+
+</body>
+</html>
